@@ -110,7 +110,7 @@ dependencies = [
 
 [[package]]
 name = "disk_scrub"
-version = "0.1.1-beta.3"
+version = "0.1.1-beta.4"
 dependencies = [
  "clap",
  "hex",
