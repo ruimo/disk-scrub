@@ -54,10 +54,29 @@ Fig. 2 How it works
 
 Grub the [package](https://github.com/ruimo/disk-scrub/releases) and unpack it and just run:
 
-$ ./disk_scrub /target/directory/to/inspect
+    $ ./disk_scrub /target/directory/to/inspect
+    Summary:                                                                                                                
+      Added files: 4
+      Removed files: 0
+      Modified files: 0
+                              
+    Details:
+    [Added files]                                                                                                           
+      "disk_scrub"
+      "disk_scrub-macos-x86_64.zip"
+      "test/a"
+      "test/b/c"
+    [Removed files]
+    [Modified files]
 
 The 'Controlfile' will be created at the current working directory. You can change it by -f option.
 
 $ ./disk_scrub -f /path/to/Controlfile /target/directory/to/inspect
 
-The results are printed to standard output. 
+The results are printed to standard output. Current version of this tool is:
+
+- Has no functions for notification. You can use your favorite tools to send the report to mail/Slack/etc.
+
+- Has no functions to execute periodically. You can use cron or any other tool for this. When launching the tool, please make sure the previous instance is not still running.
+
+- It may be a good idea to use a tool such as ionice in conjunction with this tool so that to prevent disk scrub occupies disk access.
