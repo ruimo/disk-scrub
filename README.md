@@ -8,9 +8,4 @@
       C-->D;
 ```
 
-```plantuml
-@startuml
-:Hello world;
-:this is section1;
-@enduml
-```
+![Abstract](charts/abstract.drawio.svg)
