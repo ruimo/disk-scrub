@@ -27,3 +27,40 @@ jobs:
       with:
         files: |
           disk_scrub-x86_64.zip
+    - name: darwin build tool cache
+      id: darwin-build-tool-cache
+      uses: actions/cache@v2
+      with:
+        path: ~/osxcross
+        key: ${{ runner.os }}-darwin-tool
+    - name: install darwin tool
+      if: steps.darwin-build-tool-cache.outputs.cache-hit != 'true'
+      run: |
+        sudo apt-get install -y clang gcc g++ zlib1g-dev libmpc-dev libmpfr-dev libgmp-dev cmake libxml2-dev
+        rustup target add x86_64-apple-darwin        
+        git clone https://github.com/tpoechtrager/osxcross
+        cd osxcross
+        wget -nc https://s3.dockerproject.org/darwin/v2/MacOSX10.10.sdk.tar.xz
+        mv MacOSX10.10.sdk.tar.xz tarballs/
+        UNATTENDED=yes OSX_VERSION_MIN=10.7 ./build.sh
+        cd ..
+    - name: Build darwin binary
+      run: |
+        PATH="$(pwd)/osxcross/target/bin:$PATH"
+        cargo build --verbose --release --target x86_64-apple-darwin
+        cd target/x86_64-apple-darwin/release
+        zip ../../../disk_scrub-macos-x86_64.zip disk_scrub
+    - name: Build Windows binary
+      run: |
+        sudo apt install mingw-w64 -y
+        rustup target add x86_64-pc-windows-gnu
+        cargo build --verbose --release --target x86_64-pc-windows-gnu
+        cd target/x86_64-pc-windows-gnu/release
+        zip ../../../disk_scrub-win-x86_64.zip disk_scrub
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          disk_scrub-x86_64.zip
+          disk_scrub-macos-x86_64.zip
+          disk_scrub-win-x86_64.zip
