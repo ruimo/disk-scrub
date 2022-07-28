@@ -1,0 +1,29 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+    - '*'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      run: |
+        cargo build --verbose --release
+        cd target/release
+        zip ../../disk_scrub-x86_64.zip disk_scrub
+    - name: Run tests
+      run: cargo test –verbose
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          disk_scrub-x86_64.zip
