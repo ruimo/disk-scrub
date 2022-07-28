@@ -23,7 +23,7 @@ jobs:
       run: |
         rm -rf downloads
         mkdir downloads
-        cp target/release/rust_cli_starter_sample downloads/
+        cp target/release/disk_scrub downloads/
     - name: upload artifacts
       uses: actions/upload-artifact@v2
       with: 
