@@ -27,6 +27,13 @@ fn main() {
     let target_dir = Path::new(&cli.target_dir);
 
     let to = perform(&control_file, &target_dir, |report| {
+        println!("Summary:");
+        println!("  Added files: {}", report.added.len());
+        println!("  Removed files: {}", report.removed.len());
+        println!("  Modified files: {}", report.modified.len());
+
+        println!("");
+        println!("Details:");
         println!("[Added files]");
         for f in report.added.iter() {
             println!("  {:?}", f);
