@@ -26,15 +26,7 @@ Hard drive's failure may make sectors unreadable. You may not be aware of this f
 
 ## How it works
 
-The tool reads the files to ensure that no errors are detected.
-
-- It reads out all files under the specified directory, so if there are errors on the disk, they will be detected.
-
-- Once executed, it saves the paths of the files and the hash of its contents into a file called 'Controlfile'.
-
-- The next time you run this tool, it will do the same thing, and compare the results with the existing 'Controlfile', and output a list of added, deleted, and modified files.
-
-Fig.2 illustrates how the tool works.
+This tool is focused on detecting file corruption. Fig.2 illustrates how the tool works.
 
 1. It walks through all the files under the specified directory and calculate hash of each file.
 
@@ -80,3 +72,7 @@ The results are printed to standard output. Current version of this tool is:
 - Has no functions to execute periodically. You can use cron or any other tool for this. When launching the tool, please make sure the previous instance is not still running.
 
 - It may be a good idea to use a tool such as ionice in conjunction with this tool so that to prevent disk scrub occupies disk access.
+
+- Has no function to backup files.
+
+- Has no function to retain older versions of a file. You may want to use some sort of backup solutions such as [Backblaze](https://www.backblaze.com/cloud-backup.html#af9uz7). You can recover files that you accidentally modified/deleted with these kind of solutions.
