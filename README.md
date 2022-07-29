@@ -47,13 +47,13 @@ Fig. 2 How it works
 Grub the [package](https://github.com/ruimo/disk-scrub/releases) and unpack it and just run:
 
     $ ./disk_scrub /target/directory/to/inspect
-    Summary:                                                                                                                
+    Summary:
       Added files: 4
       Removed files: 0
       Modified files: 0
-                              
+    
     Details:
-    [Added files]                                                                                                           
+    [Added files]
       "disk_scrub"
       "disk_scrub-macos-x86_64.zip"
       "test/a"
