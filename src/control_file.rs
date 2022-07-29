@@ -40,9 +40,7 @@ impl ControlFile {
     }
 
     pub fn load_from_dir<P: AsRef<Path>>(dir: P) -> Result<Self, IoError> {
-        let mut list = tree::list_recursive(&dir).map_err(
-            |err| IoError { cause: err, message: "Cannot access directory.".to_owned(), path: Some(dir.as_ref().to_owned())}
-        )?;
+        let mut list = tree::list_recursive(&dir)?;
         list.sort();
         let mut recs = Vec::with_capacity(list.len());
         for f in list.iter() {

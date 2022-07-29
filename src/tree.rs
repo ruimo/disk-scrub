@@ -1,13 +1,37 @@
 use std::{path::Path, io::{Error, ErrorKind}, fs};
 
-pub fn list_recursive<P: AsRef<Path>>(dir: P) -> Result<Vec<String>, Error> {
-    if ! dir.as_ref().exists() { return Err(ErrorKind::NotFound.into()); }
-    if ! dir.as_ref().is_dir() { return Err(Error::new(ErrorKind::Other, "Not a directory.")); }
+use crate::io_error::IoError;
+
+pub fn list_recursive<P: AsRef<Path>>(dir: P) -> Result<Vec<String>, IoError> {
+    if ! dir.as_ref().exists() {
+        return Err(
+            IoError {
+                cause: ErrorKind::NotFound.into(), message: "Not found.".to_owned(), path: Some(dir.as_ref().to_owned())
+            }
+        );
+     }
+    if ! dir.as_ref().is_dir() {
+        return Err(
+            IoError {
+                cause: Error::new(ErrorKind::Other, "Not a directory."),
+                message: "Not a directory".to_owned(),
+                path: Some(dir.as_ref().to_owned()) }
+        );
+    }
     let mut ret: Vec<String> = vec![];
 
-    fn f<P0: AsRef<Path>, P1: AsRef<Path>>(root: P0, dir: P1, ret: &mut Vec<String>) -> Result<(), Error> {
-        for e in fs::read_dir(dir)? {
-            let path = e?.path();
+    fn f<P0: AsRef<Path>, P1: AsRef<Path>>(root: P0, dir: P1, ret: &mut Vec<String>) -> Result<(), IoError> {
+        let read_dir = fs::read_dir(dir.as_ref()).map_err(|err|
+            IoError {
+                cause: err, message: "Cannot read directory.".to_owned(), path: Some(dir.as_ref().to_owned())
+            }
+        )?;
+        for e in read_dir {
+            let path = e.map_err(|err|
+                IoError {
+                    cause: err, message: "Cannot list entries in this directory.".to_owned(), path: Some(dir.as_ref().to_owned())
+                }
+            )?.path();
             if path.is_dir() {
                 f(root.as_ref(), path.as_path(), ret)?
             } else {
@@ -74,7 +98,7 @@ mod tests {
     #[test]
     fn can_treat_non_exitent() {
         let root = Path::new("non_exitent");
-        assert_eq!(list_recursive(&root).err().unwrap().kind(), ErrorKind::NotFound);
+        assert_eq!(list_recursive(&root).err().unwrap().cause.kind(), ErrorKind::NotFound);
     }
 
     #[test]
