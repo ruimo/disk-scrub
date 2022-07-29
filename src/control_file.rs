@@ -3,7 +3,7 @@ use std::io::Write;
 
 use sha2::{Sha256, Digest};
 
-use crate::{tree, io_error::IoError};
+use crate::{tree, io_error::IoError, Cli};
 
 pub struct ControlFile {
     pub entries: Vec<ControlFileEntry>,    
@@ -39,8 +39,8 @@ impl ControlFile {
         Ok(())
     }
 
-    pub fn load_from_dir<P: AsRef<Path>>(dir: P) -> Result<Self, IoError> {
-        let mut list = tree::list_recursive(&dir)?;
+    pub fn load_from_dir<P: AsRef<Path>>(dir: P, cli: &Cli) -> Result<Self, IoError> {
+        let mut list = tree::list_recursive(&dir, cli)?;
         list.sort();
         let mut recs = Vec::with_capacity(list.len());
         for f in list.iter() {
@@ -163,6 +163,7 @@ mod tests {
     use std::io::Write;
     use std::{fs::File, os::unix::prelude::FileExt};
     use tempfile::tempdir;
+    use crate::Cli;
     use crate::control_file::{ParseError, file_hash};
     use super::{ControlFileEntry, ControlFile};
     use super::str_hash;
@@ -273,7 +274,12 @@ mod tests {
             foo1.write_all(b"ABC").unwrap();
         }
 
-        let list = ControlFile::load_from_dir(&tmp_dir).unwrap();
+        let cli = Cli {
+          control_file : "".to_owned(),
+          exclude: vec![],
+          target_dir: "".to_owned(),
+        };
+        let list = ControlFile::load_from_dir(&tmp_dir, &cli).unwrap();
         assert_eq!(list.len(), 2);
         let e = &list.entries[0];
         assert_eq!(e.file_path, "foo/foo1.txt");

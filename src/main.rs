@@ -8,18 +8,25 @@ mod tree;
 mod control_file;
 mod report;
 mod io_error;
+mod exclude;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = Some("Checks file integrity."))]
-struct Cli {
+pub struct Cli {
     /// Target directory to preform integrity check. Will be checked recursively.
     #[clap(value_parser)]
     target_dir: String,
 
-    /// Control file location. Will be updated accoring to the contents under the target directory.
+    /// Control file location. Will be updated according to the contents under the target directory.
     /// If the tool aborts, this file will not be changed.
     #[clap(short = 'f', long, value_parser, default_value_t = String::from("Controlfile"))]
-    control_file: String,    
+    control_file: String,
+
+    /// Exclude wildcard pattern of directory and file. If directories or files match this pattern, will be ignored.
+    /// You can use '?' that matches any single character and '*' that matches more than zero length characters.
+    /// '.*' means files or directories that starts with '.' such as '._DS_STORE'.
+    #[clap(short = 'X', long, value_parser)]
+    exclude: Vec<String>,
 }
 
 fn main() {
@@ -27,7 +34,7 @@ fn main() {
     let control_file = Path::new(&cli.control_file);
     let target_dir = Path::new(&cli.target_dir);
 
-    let to = perform(&control_file, &target_dir, |report| {
+    let to = perform(&cli, &control_file, &target_dir, |report| {
         println!("Summary:");
         println!("  Added files: {}", report.added.len());
         println!("  Removed files: {}", report.removed.len());
@@ -54,7 +61,7 @@ fn main() {
     to.save_to_file(&control_file).unwrap();
 }
 
-fn perform<F, P, O>(control_file: F, target_dir: P, out: O) -> ControlFile
+fn perform<F, P, O>(cli: &Cli, control_file: F, target_dir: P, out: O) -> ControlFile
     where F: AsRef<Path>, P: AsRef<Path>, O: FnOnce(&Report)
 {
     let from = 
@@ -64,7 +71,7 @@ fn perform<F, P, O>(control_file: F, target_dir: P, out: O) -> ControlFile
             ControlFile::load_from_file(&control_file).unwrap()
         };
 
-    let to = ControlFile::load_from_dir(&target_dir).unwrap();
+    let to = ControlFile::load_from_dir(&target_dir, &cli).unwrap();
     
     out(&Report::new(&from, &to));
 
@@ -75,7 +82,7 @@ fn perform<F, P, O>(control_file: F, target_dir: P, out: O) -> ControlFile
 mod tests {
     use std::{fs::{File, self}, io::Write};
     use tempfile::tempdir;
-    use crate::{perform};
+    use crate::{perform, Cli};
 
     #[test]
     fn tiny_case() {
@@ -98,7 +105,13 @@ mod tests {
         let from = ctrl_dir.path().join("Controlfile");
         let mut report_called = false;
 
-        let to = perform(&from, &tmp_dir, |report| {
+        let cli = Cli {
+            control_file: "".to_owned(),
+            exclude: vec![],
+            target_dir: "".to_owned(),
+        };
+        
+        let to = perform(&cli, &from, &tmp_dir, |report| {
             report_called = true;
             assert_eq!(report.added.len(), 3);
             assert_eq!(report.removed.len(), 0);
@@ -119,7 +132,12 @@ mod tests {
         fs::remove_file(tmp_dir.path().join("foo/foo2.txt")).unwrap();
 
         report_called = false;
-        perform(&from, &tmp_dir, |report| {
+        let cli = Cli {
+            control_file: "".to_owned(),
+            exclude: vec![],
+            target_dir: "".to_owned(),
+        };
+        perform(&cli, &from, &tmp_dir, |report| {
             report_called = true;
             assert_eq!(report.added.len(), 1);
             assert_eq!(report.added[0], "foo/foo3.txt");
