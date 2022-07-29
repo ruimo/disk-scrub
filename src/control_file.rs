@@ -3,7 +3,7 @@ use std::io::Write;
 
 use sha2::{Sha256, Digest};
 
-use crate::tree;
+use crate::{tree, io_error::IoError};
 
 pub struct ControlFile {
     pub entries: Vec<ControlFileEntry>,    
@@ -39,12 +39,18 @@ impl ControlFile {
         Ok(())
     }
 
-    pub fn load_from_dir<P: AsRef<Path>>(dir: P) -> Result<Self, Error> {
-        let mut list = tree::list_recursive(&dir)?;
+    pub fn load_from_dir<P: AsRef<Path>>(dir: P) -> Result<Self, IoError> {
+        let mut list = tree::list_recursive(&dir).map_err(
+            |err| IoError { cause: err, message: "Cannot access directory.".to_owned(), path: Some(dir.as_ref().to_owned())}
+        )?;
         list.sort();
         let mut recs = Vec::with_capacity(list.len());
         for f in list.iter() {
-            recs.push(ControlFileEntry::from_file(&dir, f.clone())?);
+            recs.push(
+                ControlFileEntry::from_file(&dir, f.clone()).map_err(
+                    |err| IoError { cause: err, message: "Cannot read file.".to_owned(), path: Some(dir.as_ref().join(f).to_owned()) }
+                )?
+            );
         }
         Ok(Self { entries: recs, })
     }

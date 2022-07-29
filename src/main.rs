@@ -7,6 +7,7 @@ use report::Report;
 mod tree;
 mod control_file;
 mod report;
+mod io_error;
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = Some("Checks file integrity."))]
