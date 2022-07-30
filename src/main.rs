@@ -22,9 +22,10 @@ pub struct Cli {
     #[clap(short = 'f', long, value_parser, default_value_t = String::from("Controlfile"))]
     control_file: String,
 
-    /// Exclude wildcard pattern of directory and file. If directories or files match this pattern, will be ignored.
+    /// Exclude directories or files that match the specified wildcard pattern.
     /// You can use '?' that matches any single character and '*' that matches more than zero length characters.
     /// '.*' means files or directories that starts with '.' such as '._DS_STORE'.
+    /// You can more than one exclude pattern.
     #[clap(short = 'X', long, value_parser)]
     exclude: Vec<String>,
 }

@@ -53,6 +53,7 @@ impl ControlFile {
         Ok(Self { entries: recs, })
     }
 
+    #[allow(dead_code)]
     pub fn len(&self) -> usize {
         self.entries.len()
     }
@@ -151,6 +152,7 @@ fn file_hash(path: &Path, buf_size: Option<usize>) -> Result<Vec<u8>, Error> {
     Ok(hasher.finalize().to_vec())
 }
 
+#[allow(dead_code)]
 pub fn str_hash(s: &str) -> Vec<u8> {
     let mut hasher = Sha256::new();
     hasher.update(s);
