@@ -34,7 +34,7 @@ This tool is focused on detecting file corruption. Fig.2 illustrates how the too
 
 1. It displays added, removed, and modified files.
 
-1. Update 'Controlfile' with the lates result.
+1. Update 'Controlfile' with the latest result.
 
 ![Solution](charts/solution.drawio.svg)
 

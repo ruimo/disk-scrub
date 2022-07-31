@@ -1,4 +1,4 @@
-use std::{io::{Error, self, BufRead, ErrorKind, BufWriter, Read}, path::Path, fs::File, fmt::{Display, self}};
+use std::{io::{Error, self, BufRead, ErrorKind, BufWriter, Read}, path::Path, fs::File, fmt::{Display, self}, ops::Index};
 use std::io::Write;
 
 use sha2::{Sha256, Digest};
@@ -72,6 +72,14 @@ impl ControlFile {
             Err(_) => None,
             Ok(idx) => Some(&self.entries[idx]),
         }
+    }
+}
+
+impl Index<usize> for ControlFile {
+    type Output = ControlFileEntry;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.entries[index]
     }
 }
 

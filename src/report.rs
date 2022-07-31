@@ -1,5 +1,3 @@
-use similar::{TextDiff, ChangeTag};
-
 use crate::control_file::ControlFile;
 
 pub struct Report<'a> {
@@ -10,22 +8,41 @@ pub struct Report<'a> {
 
 impl<'a> Report<'a> {
     pub fn new(from: &'a ControlFile, to: &'a ControlFile) -> Self {
-        let from_files = from.files();
-        let to_files = to.files();
-        let diff = TextDiff::from_slices(&from_files, &to_files);
         let mut added: Vec<&'a str> = vec![];
         let mut deleted: Vec<&'a str> = vec![];
         let mut modified: Vec<&'a str> = vec![];
 
-        for d in diff.iter_all_changes() {
-            let file_path = d.value();
-            match d.tag() {
-                ChangeTag::Equal =>
-                  if from.get(file_path).unwrap().sha256 != to.get(file_path).unwrap().sha256 {
-                    modified.push(file_path)
-                  }
-                ChangeTag::Delete => deleted.push(file_path),
-                ChangeTag::Insert => added.push(file_path),
+        let mut from_idx = 0;
+        let mut to_idx = 0;
+
+        loop {
+            if from.len() <= from_idx && to.len() <= to_idx { break; }
+            else if from.len() <= from_idx && to_idx < to.len() {
+                for i in to_idx..to.len() {
+                    added.push(&to[i].file_path);
+                }
+                break;
+            } else if from_idx < from.len() && to.len() <= to_idx {
+                for i in from_idx..from.len() {
+                    deleted.push(&from[i].file_path);
+                }
+                break;
+            } else {
+                let fc = &from[from_idx];
+                let tc = &to[to_idx];
+                if fc.file_path < tc.file_path {
+                    deleted.push(&fc.file_path);
+                    from_idx += 1;
+                } else if tc.file_path < fc.file_path {
+                    added.push(&tc.file_path);
+                    to_idx += 1;
+                } else {
+                    if tc.sha256 != fc.sha256 {
+                        modified.push(&tc.file_path);
+                    }
+                    from_idx += 1;
+                    to_idx += 1;
+                }
             }
         }
 
@@ -36,7 +53,6 @@ impl<'a> Report<'a> {
 #[cfg(test)]
 mod tests {
     use crate::control_file::{ControlFile, ControlFileEntry, str_hash};
-
     use super::Report;
 
     #[test]
